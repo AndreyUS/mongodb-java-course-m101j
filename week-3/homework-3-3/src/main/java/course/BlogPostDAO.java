@@ -73,11 +73,15 @@ public class BlogPostDAO {
     // Append a comment to a blog post
     public void addPostComment(final String name, final String email, final String body,
                                final String permalink) {
+        Document post = findByPermalink(permalink);
+        Document comment = new Document("author", name)
+                .append("body", body);
 
-        // XXX HW 3.3, Work Here
-        // Hints:
-        // - email is optional and may come in NULL. Check for that.
-        // - best solution uses an update command to the database and a suitable
-        //   operator to append the comment on to any existing list of comments
+        if (email != null) {
+            comment = comment.append("email", email);
+        }
+
+        postsCollection.updateOne(Filters.eq("_id", post.get("_id")),
+                new Document("$push", new Document("comments", comment)));
     }
 }
