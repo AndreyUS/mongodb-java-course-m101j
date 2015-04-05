@@ -2,8 +2,11 @@ package course;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import org.bson.Document;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class BlogPostDAO {
@@ -15,12 +18,7 @@ public class BlogPostDAO {
 
     // Return a single post corresponding to a permalink
     public Document findByPermalink(String permalink) {
-
-        // XXX HW 3.2,  Work Here
-        Document post = null;
-
-
-
+        Document post = postsCollection.find(Filters.eq("permalink", permalink)).first();
         return post;
     }
 
@@ -28,9 +26,10 @@ public class BlogPostDAO {
     // how many posts are returned.
     public List<Document> findByDateDescending(int limit) {
 
-        // XXX HW 3.2,  Work Here
-        // Return a list of DBObjects, each one a post from the posts collection
-        List<Document> posts = null;
+        List<Document> posts = postsCollection.find()
+                .limit(limit)
+                .sort(new Document("date", -1))
+                .into(new ArrayList<>());
 
         return posts;
     }
@@ -44,20 +43,17 @@ public class BlogPostDAO {
         permalink = permalink.replaceAll("\\W", ""); // get rid of non alphanumeric
         permalink = permalink.toLowerCase();
 
-
-        // XXX HW 3.2, Work Here
-        // Remember that a valid post has the following keys:
-        // author, body, permalink, tags, comments, date
-        //
-        // A few hints:
-        // - Don't forget to create an empty list of comments
-        // - for the value of the date key, today's datetime is fine.
-        // - tags are already in list form that implements suitable interface.
-        // - we created the permalink for you above.
-
         // Build the post object and insert it
-        Document post = new Document();
+        Document post = new Document()
+                .append("author", username)
+                .append("title", title)
+                .append("body", body)
+                .append("permalink", permalink)
+                .append("tags", tags)
+                .append("comments", new ArrayList())
+                .append("date", new Date());
 
+        postsCollection.insertOne(post);
 
         return permalink;
     }
